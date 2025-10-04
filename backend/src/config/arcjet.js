@@ -7,13 +7,17 @@ export const aj = arcjet({
   characteristics: ["ip.src"],
   rules: [
     // shield protects your app from common attacks e.g. SQL injection, XSS, CSRF attacks
-    shield({ mode: "LIVE" }),
+    shield({ mode: ENV.NODE_ENV === "production" ? "LIVE" : "DRY_RUN" }),
 
-    // bot detection - block all bots except search engines
+    // bot detection - in development mode, be more permissive for mobile apps
     detectBot({
-      mode: "LIVE",
+      mode: ENV.NODE_ENV === "production" ? "LIVE" : "DRY_RUN", // DRY_RUN in dev
       allow: [
         "CATEGORY:SEARCH_ENGINE",
+        // allow mobile app user agents in development
+        "okhttp", // React Native Android
+        "CFNetwork", // React Native iOS  
+        "Expo", // Expo Go app
         // allow legitimate search engine bots
         // see full list at https://arcjet.com/bot-list
       ],

@@ -1,7 +1,7 @@
 import axios, { AxiosInstance } from "axios";
 import { useAuth } from "@clerk/clerk-expo";
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || "https://x-clone-rn.vercel.app/api";
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL + "/api" || "https://x-clone-rn.vercel.app/api";
 // ! 🔥 localhost api would not work on your actual physical device
 // const API_BASE_URL = "http://localhost:5001/api";
 
@@ -29,6 +29,10 @@ export const userApi = {
   syncUser: (api: AxiosInstance) => api.post("/users/sync"),
   getCurrentUser: (api: AxiosInstance) => api.get("/users/me"),
   updateProfile: (api: AxiosInstance, data: any) => api.put("/users/profile", data),
+  getUserProfile: (api: AxiosInstance, username: string) => api.get(`/users/profile/${username}`),
+  followUser: (api: AxiosInstance, targetUserId: string) => api.post(`/users/follow/${targetUserId}`),
+  searchUsers: (api: AxiosInstance, query: string) => api.get(`/users/search?q=${encodeURIComponent(query)}`),
+  searchUsersAndMessages: (api: AxiosInstance, query: string) => api.get(`/users/search-messages?q=${encodeURIComponent(query)}`),
 };
 
 export const postApi = {

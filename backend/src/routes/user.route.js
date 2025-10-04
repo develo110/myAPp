@@ -3,6 +3,8 @@ import {
   followUser,
   getCurrentUser,
   getUserProfile,
+  searchUsers,
+  searchUsersAndMessages,
   syncUser,
   updateProfile,
 } from "../controllers/user.controller.js";
@@ -10,8 +12,10 @@ import { protectRoute } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-// public route
+// public routes
 router.get("/profile/:username", getUserProfile);
+router.get("/search", searchUsers);
+router.get("/search-messages", searchUsersAndMessages);
 
 // protected routes
 router.post("/sync", protectRoute, syncUser);

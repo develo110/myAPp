@@ -100,3 +100,96 @@ export const followUser = asyncHandler(async (req, res) => {
     message: isFollowing ? "User unfollowed successfully" : "User followed successfully",
   });
 });
+
+export const searchUsers = asyncHandler(async (req, res) => {
+  const { q } = req.query;
+
+  if (!q || q.trim() === "") {
+    return res.status(400).json({ error: "Search query is required" });
+  }
+
+  const searchQuery = q.trim();
+  
+  // Search for users by username, firstName, or lastName (case insensitive)
+  const users = await User.find({
+    $or: [
+      { username: { $regex: searchQuery, $options: "i" } },
+      { firstName: { $regex: searchQuery, $options: "i" } },
+      { lastName: { $regex: searchQuery, $options: "i" } },
+      {
+        $expr: {
+          $regexMatch: {
+            input: { $concat: ["$firstName", " ", "$lastName"] },
+            regex: searchQuery,
+            options: "i"
+          }
+        }
+      }
+    ]
+  })
+  .select("firstName lastName username profilePicture bio followers following createdAt")
+  .limit(20)
+  .lean();
+
+  res.status(200).json({ users, count: users.length });
+});
+
+export const searchUsersAndMessages = asyncHandler(async (req, res) => {
+  const { q } = req.query;
+
+  if (!q || q.trim() === "") {
+    return res.status(400).json({ error: "Search query is required" });
+  }
+
+  const searchQuery = q.trim();
+  
+  // Search for users by username, firstName, or lastName (case insensitive)
+  const users = await User.find({
+    $or: [
+      { username: { $regex: searchQuery, $options: "i" } },
+      { firstName: { $regex: searchQuery, $options: "i" } },
+      { lastName: { $regex: searchQuery, $options: "i" } },
+      {
+        $expr: {
+          $regexMatch: {
+            input: { $concat: ["$firstName", " ", "$lastName"] },
+            regex: searchQuery,
+            options: "i"
+          }
+        }
+      }
+    ]
+  })
+  .select("firstName lastName username profilePicture bio followers following createdAt")
+  .limit(20)
+  .lean();
+
+  // For now, we'll return users with mock message data
+  // In a real app, you would also search through actual message/conversation collections
+  const usersWithMessages = users.map(user => ({
+    ...user,
+    hasMessages: true,
+    lastMessage: `Hey! Let's connect and chat about ${searchQuery}`,
+    lastMessageTime: "now",
+    messagePreview: [
+      {
+        id: 1,
+        text: `Hi there! I saw you're interested in ${searchQuery}`,
+        fromUser: false,
+        time: "2h"
+      },
+      {
+        id: 2,
+        text: "Would love to chat more about it!",
+        fromUser: false,
+        time: "2h"
+      }
+    ]
+  }));
+
+  res.status(200).json({ 
+    results: usersWithMessages, 
+    count: usersWithMessages.length,
+    type: "users_with_messages"
+  });
+});
