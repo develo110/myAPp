@@ -1,11 +1,14 @@
 import EditProfileModal from "@/components/EditProfileModal";
 import PostsList from "@/components/PostsList";
 import SignOutButton from "@/components/SignOutButton";
+import VideoAutoplaySettingsModal from "@/components/VideoAutoplaySettingsModal";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { usePosts } from "@/hooks/usePosts";
 import { useProfile } from "@/hooks/useProfile";
+import { useImageUpload } from "@/hooks/useImageUpload";
 import { Feather } from "@expo/vector-icons";
 import { format } from "date-fns";
+import { useState } from "react";
 import {
   View,
   Text,
@@ -20,6 +23,8 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 const ProfileScreens = () => {
   const { currentUser, isLoading } = useCurrentUser();
   const insets = useSafeAreaInsets();
+  const { showImageOptions, isUploadingProfile, isUploadingBanner } = useImageUpload();
+  const [isVideoSettingsVisible, setIsVideoSettingsVisible] = useState(false);
 
   const {
     posts: userPosts,
@@ -74,22 +79,55 @@ const ProfileScreens = () => {
           />
         }
       >
-        <Image
-          source={{
-            uri:
-              currentUser.bannerImage ||
-              "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=400&fit=crop",
-          }}
-          className="w-full h-48"
-          resizeMode="cover"
-        />
+        {/* Banner Image with Upload Option */}
+        <View className="relative">
+          <Image
+            source={{
+              uri:
+                currentUser.bannerImage ||
+                "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=400&fit=crop",
+            }}
+            className="w-full h-48"
+            resizeMode="cover"
+          />
+          
+          {/* Banner Upload Button */}
+          <TouchableOpacity
+            className="absolute top-4 right-4 bg-black bg-opacity-50 rounded-full p-2"
+            onPress={() => showImageOptions("banner")}
+            disabled={isUploadingBanner}
+          >
+            {isUploadingBanner ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <Feather name="camera" size={20} color="white" />
+            )}
+          </TouchableOpacity>
+        </View>
 
         <View className="px-4 pb-4 border-b border-gray-100">
           <View className="flex-row justify-between items-end -mt-16 mb-4">
-            <Image
-              source={{ uri: currentUser.profilePicture }}
-              className="w-32 h-32 rounded-full border-4 border-white"
-            />
+            {/* Profile Image with Upload Option */}
+            <View className="relative">
+              <Image
+                source={{ uri: currentUser.profilePicture }}
+                className="w-32 h-32 rounded-full border-4 border-white"
+              />
+              
+              {/* Profile Image Upload Button */}
+              <TouchableOpacity
+                className="absolute bottom-2 right-2 bg-blue-500 rounded-full p-2"
+                onPress={() => showImageOptions("profile")}
+                disabled={isUploadingProfile}
+              >
+                {isUploadingProfile ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <Feather name="camera" size={16} color="white" />
+                )}
+              </TouchableOpacity>
+            </View>
+            
             <TouchableOpacity
               className="border border-gray-300 px-6 py-2 rounded-full"
               onPress={openEditModal}
@@ -137,6 +175,25 @@ const ProfileScreens = () => {
           </View>
         </View>
 
+        {/* Settings Section */}
+        <View className="border-b border-gray-100">
+          <TouchableOpacity
+            className="flex-row items-center justify-between px-4 py-4"
+            onPress={() => setIsVideoSettingsVisible(true)}
+          >
+            <View className="flex-row items-center">
+              <View className="w-10 h-10 bg-blue-50 rounded-full items-center justify-center mr-3">
+                <Feather name="play" size={20} color="#3B82F6" />
+              </View>
+              <View>
+                <Text className="font-medium text-gray-900">Video Autoplay</Text>
+                <Text className="text-sm text-gray-500">Manage video autoplay settings</Text>
+              </View>
+            </View>
+            <Feather name="chevron-right" size={20} color="#9CA3AF" />
+          </TouchableOpacity>
+        </View>
+
         <PostsList username={currentUser?.username} />
       </ScrollView>
 
@@ -147,6 +204,11 @@ const ProfileScreens = () => {
         saveProfile={saveProfile}
         updateFormField={updateFormField}
         isUpdating={isUpdating}
+      />
+
+      <VideoAutoplaySettingsModal
+        visible={isVideoSettingsVisible}
+        onClose={() => setIsVideoSettingsVisible(false)}
       />
     </SafeAreaView>
   );

@@ -25,7 +25,21 @@ export const useProfile = () => {
       Alert.alert("Success", "Profile updated successfully!");
     },
     onError: (error: any) => {
-      Alert.alert("Error", error.response?.data?.error || "Failed to update profile");
+      console.error("Profile update failed:", error);
+      let errorMessage = "Failed to update profile";
+      
+      if (error.response) {
+        console.error("Response error:", error.response.status, error.response.data);
+        errorMessage = error.response.data?.error || `Server error (${error.response.status})`;
+      } else if (error.request) {
+        console.error("Network error - no response received");
+        errorMessage = "Network error. Check your connection.";
+      } else {
+        console.error("Request setup error:", error.message);
+        errorMessage = error.message || "Failed to update profile";
+      }
+      
+      Alert.alert("Error", errorMessage);
     },
   });
 

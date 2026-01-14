@@ -52,7 +52,7 @@ const NotificationCard = ({ notification, onDelete }: NotificationCardProps) => 
       <View className="flex-row p-4">
         <View className="relative mr-3">
           <Image
-            source={{ uri: notification.from.profilePicture }}
+            source={{ uri: notification.from.profilePicture || "https://via.placeholder.com/48" }}
             className="size-12 rounded-full"
           />
 

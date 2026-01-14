@@ -63,46 +63,72 @@ export const getUserPosts = asyncHandler(async (req, res) => {
 export const createPost = asyncHandler(async (req, res) => {
   const { userId } = getAuth(req);
   const { content } = req.body;
-  const imageFile = req.file;
+  const mediaFile = req.file;
 
-  if (!content && !imageFile) {
-    return res.status(400).json({ error: "Post must contain either text or image" });
+  if (!content && !mediaFile) {
+    return res.status(400).json({ error: "Post must contain either text or media" });
   }
 
   const user = await User.findOne({ clerkId: userId });
   if (!user) return res.status(404).json({ error: "User not found" });
 
-  let imageUrl = "";
+  let mediaUrl = "";
+  let mediaType = "none";
 
-  // upload image to Cloudinary if provided
-  if (imageFile) {
+  // upload media to Cloudinary if provided
+  if (mediaFile) {
     try {
       // convert buffer to base64 for cloudinary
-      const base64Image = `data:${imageFile.mimetype};base64,${imageFile.buffer.toString(
+      const base64Media = `data:${mediaFile.mimetype};base64,${mediaFile.buffer.toString(
         "base64"
       )}`;
 
-      const uploadResponse = await cloudinary.uploader.upload(base64Image, {
+      // Determine if it's an image or video
+      const isVideo = mediaFile.mimetype.startsWith('video/');
+      mediaType = isVideo ? "video" : "image";
+
+      const uploadOptions = {
         folder: "social_media_posts",
-        resource_type: "image",
-        transformation: [
+        resource_type: isVideo ? "video" : "image",
+      };
+
+      // Add transformations based on media type
+      if (isVideo) {
+        uploadOptions.transformation = [
+          { width: 800, height: 600, crop: "limit" },
+          { quality: "auto" },
+          { format: "mp4" }, // Convert to mp4 for better compatibility
+        ];
+      } else {
+        uploadOptions.transformation = [
           { width: 800, height: 600, crop: "limit" },
           { quality: "auto" },
           { format: "auto" },
-        ],
-      });
-      imageUrl = uploadResponse.secure_url;
+        ];
+      }
+
+      const uploadResponse = await cloudinary.uploader.upload(base64Media, uploadOptions);
+      mediaUrl = uploadResponse.secure_url;
     } catch (uploadError) {
       console.error("Cloudinary upload error:", uploadError);
-      return res.status(400).json({ error: "Failed to upload image" });
+      return res.status(400).json({ error: "Failed to upload media" });
     }
   }
 
-  const post = await Post.create({
+  const postData = {
     user: user._id,
     content: content || "",
-    image: imageUrl,
-  });
+    mediaType,
+  };
+
+  // Set the appropriate media field
+  if (mediaType === "image") {
+    postData.image = mediaUrl;
+  } else if (mediaType === "video") {
+    postData.video = mediaUrl;
+  }
+
+  const post = await Post.create(postData);
 
   res.status(201).json({ post });
 });

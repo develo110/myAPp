@@ -6,7 +6,11 @@ import {
   ActivityIndicator,
   ScrollView,
   TextInput,
+  Image,
 } from "react-native";
+import { Feather } from "@expo/vector-icons";
+import { useImageUpload } from "../hooks/useImageUpload";
+import { useCurrentUser } from "../hooks/useCurrentUser";
 
 interface EditProfileModalProps {
   isVisible: boolean;
@@ -30,6 +34,9 @@ const EditProfileModal = ({
   saveProfile,
   updateFormField,
 }: EditProfileModalProps) => {
+  const { currentUser } = useCurrentUser();
+  const { showImageOptions, isUploadingProfile, isUploadingBanner } = useImageUpload();
+
   const handleSave = () => {
     saveProfile();
     onClose();
@@ -58,6 +65,58 @@ const EditProfileModal = ({
       </View>
 
       <ScrollView className="flex-1 px-4 py-6">
+        {/* Profile Images Section */}
+        <View className="mb-6">
+          <Text className="text-gray-500 text-sm mb-4">Profile Images</Text>
+          
+          {/* Banner Image */}
+          <View className="mb-4">
+            <Text className="text-gray-700 text-sm mb-2">Banner Image</Text>
+            <View className="relative">
+              <Image
+                source={{
+                  uri: currentUser?.bannerImage || "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=400&fit=crop"
+                }}
+                className="w-full h-32 rounded-lg"
+                resizeMode="cover"
+              />
+              <TouchableOpacity
+                className="absolute top-2 right-2 bg-black bg-opacity-50 rounded-full p-2"
+                onPress={() => showImageOptions("banner")}
+                disabled={isUploadingBanner}
+              >
+                {isUploadingBanner ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <Feather name="camera" size={16} color="white" />
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Profile Image */}
+          <View className="mb-4">
+            <Text className="text-gray-700 text-sm mb-2">Profile Image</Text>
+            <View className="relative self-start">
+              <Image
+                source={{ uri: currentUser?.profilePicture }}
+                className="w-20 h-20 rounded-full"
+              />
+              <TouchableOpacity
+                className="absolute bottom-0 right-0 bg-blue-500 rounded-full p-1"
+                onPress={() => showImageOptions("profile")}
+                disabled={isUploadingProfile}
+              >
+                {isUploadingProfile ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <Feather name="camera" size={12} color="white" />
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+
         <View className="space-y-4">
           <View>
             <Text className="text-gray-500 text-sm mb-2">First Name</Text>

@@ -18,8 +18,22 @@ export const useComments = () => {
       setCommentText("");
       queryClient.invalidateQueries({ queryKey: ["posts"] });
     },
-    onError: () => {
-      Alert.alert("Error", "Failed to post comment. Try again.");
+    onError: (error: any) => {
+      console.error("Comment creation failed:", error);
+      let errorMessage = "Failed to post comment. Try again.";
+      
+      if (error.response) {
+        console.error("Response error:", error.response.status, error.response.data);
+        errorMessage = error.response.data?.error || `Server error (${error.response.status})`;
+      } else if (error.request) {
+        console.error("Network error - no response received");
+        errorMessage = "Network error. Check your connection.";
+      } else {
+        console.error("Request setup error:", error.message);
+        errorMessage = error.message || "Failed to post comment";
+      }
+      
+      Alert.alert("Error", errorMessage);
     },
   });
 

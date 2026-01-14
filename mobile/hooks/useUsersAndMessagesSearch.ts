@@ -11,6 +11,7 @@ interface MessagePreview {
 
 interface UserWithMessages {
   _id: string;
+  clerkId: string;
   firstName: string;
   lastName: string;
   username: string;
@@ -47,7 +48,10 @@ export const useUsersAndMessagesSearch = () => {
   } = useQuery({
     queryKey: ["usersAndMessagesSearch", debouncedQuery],
     queryFn: () => userApi.searchUsersAndMessages(api, debouncedQuery),
-    select: (response) => response.data,
+    select: (response) => {
+      console.log("Search API response:", response.data);
+      return response.data;
+    },
     enabled: debouncedQuery.trim().length > 0,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -57,11 +61,14 @@ export const useUsersAndMessagesSearch = () => {
     setDebouncedQuery("");
   };
 
+  const finalResults = (searchResults?.results || []) as UserWithMessages[];
+  console.log("Final search results:", finalResults.length, finalResults.map(u => u.username));
+
   return {
     searchQuery,
     setSearchQuery,
     debouncedQuery,
-    searchResults: (searchResults?.results || []) as UserWithMessages[],
+    searchResults: finalResults,
     resultCount: searchResults?.count || 0,
     isLoading,
     error,

@@ -17,6 +17,8 @@ export interface Post {
   _id: string;
   content: string;
   image?: string;
+  video?: string;
+  mediaType: "none" | "image" | "video";
   createdAt: string;
   user: User;
   likes: string[];

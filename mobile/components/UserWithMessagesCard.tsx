@@ -3,14 +3,7 @@ import { View, Text, TouchableOpacity, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import FollowButton from './FollowButton';
-import { useCurrentUser } from '@/hooks/useCurrentUser';
-
-interface MessagePreview {
-  id: number;
-  text: string;
-  fromUser: boolean;
-  time: string;
-}
+import { useCurrentUser } from '../hooks/useCurrentUser';
 
 interface UserWithMessages {
   _id: string;
@@ -21,10 +14,6 @@ interface UserWithMessages {
   bio: string;
   followers: string[];
   following: string[];
-  hasMessages: boolean;
-  lastMessage: string;
-  lastMessageTime: string;
-  messagePreview: MessagePreview[];
 }
 
 interface UserWithMessagesCardProps {
@@ -44,9 +33,7 @@ const UserWithMessagesCard: React.FC<UserWithMessagesCardProps> = ({
   };
 
   const handleMessagePress = () => {
-    if (onStartConversation) {
-      onStartConversation(user);
-    }
+    onStartConversation?.(user);
   };
 
   const isFollowing = currentUser?.following?.includes(user._id);
@@ -104,53 +91,24 @@ const UserWithMessagesCard: React.FC<UserWithMessagesCardProps> = ({
         </Text>
       )}
 
-      {/* Message Preview */}
-      {user.hasMessages && (
-        <View className="bg-gray-50 rounded-lg p-3 ml-15">
-          <View className="flex-row items-center justify-between mb-2">
-            <View className="flex-row items-center">
-              <Feather name="message-circle" size={16} color="#1DA1F2" />
-              <Text className="text-blue-600 font-semibold text-sm ml-2">
-                Message Preview
-              </Text>
-            </View>
-            <Text className="text-gray-500 text-xs">
-              {user.lastMessageTime}
-            </Text>
-          </View>
-
-          <Text 
-            className="text-gray-700 text-sm mb-2"
-            numberOfLines={1}
-          >
-            {user.lastMessage}
+      {/* Start Conversation Button */}
+      <View className="bg-gray-50 rounded-lg p-3 ml-15">
+        <View className="flex-row items-center mb-2">
+          <Feather name="message-circle" size={16} color="#1DA1F2" />
+          <Text className="text-blue-600 font-semibold text-sm ml-2">
+            Send Message
           </Text>
-
-          {user.messagePreview && user.messagePreview.length > 0 && (
-            <View className="space-y-1">
-              {user.messagePreview.slice(0, 2).map((message, index) => (
-                <Text 
-                  key={message.id} 
-                  className="text-gray-600 text-xs"
-                  numberOfLines={1}
-                >
-                  • {message.text}
-                </Text>
-              ))}
-            </View>
-          )}
-
-          <TouchableOpacity
-            onPress={handleMessagePress}
-            className="bg-blue-500 rounded-full py-2 px-4 mt-3 self-start"
-            onStartShouldSetResponder={() => true}
-          >
-            <Text className="text-white font-semibold text-sm">
-              Start Conversation
-            </Text>
-          </TouchableOpacity>
         </View>
-      )}
+
+        <TouchableOpacity
+          onPress={handleMessagePress}
+          className="bg-blue-500 rounded-full py-2 px-4 mt-2 self-start"
+        >
+          <Text className="text-white font-semibold text-sm">
+            Start Conversation
+          </Text>
+        </TouchableOpacity>
+      </View>
     </TouchableOpacity>
   );
 };

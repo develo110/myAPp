@@ -1,6 +1,6 @@
-import { useComments } from "@/hooks/useComments";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { Post } from "@/types";
+import { useComments } from "../hooks/useComments";
+import { useCurrentUser } from "../hooks/useCurrentUser";
+import { Post } from "../types/index";
 import {
   View,
   Text,
@@ -43,7 +43,7 @@ const CommentsModal = ({ selectedPost, onClose }: CommentsModalProps) => {
           <View className="border-b border-gray-100 bg-white p-4">
             <View className="flex-row">
               <Image
-                source={{ uri: selectedPost.user.profilePicture }}
+                source={{ uri: selectedPost.user.profilePicture || "https://via.placeholder.com/48" }}
                 className="size-12 rounded-full mr-3"
               />
 
@@ -77,7 +77,7 @@ const CommentsModal = ({ selectedPost, onClose }: CommentsModalProps) => {
             <View key={comment._id} className="border-b border-gray-100 bg-white p-4">
               <View className="flex-row">
                 <Image
-                  source={{ uri: comment.user.profilePicture }}
+                  source={{ uri: comment.user.profilePicture || "https://via.placeholder.com/40" }}
                   className="w-10 h-10 rounded-full mr-3"
                 />
 

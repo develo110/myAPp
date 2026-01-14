@@ -13,7 +13,9 @@ export const getNotifications = asyncHandler(async (req, res) => {
     .sort({ createdAt: -1 })
     .populate("from", "username firstName lastName profilePicture")
     .populate("post", "content image")
-    .populate("comment", "content");
+    .populate("comment", "content")
+    .populate("message", "content messageType")
+    .populate("conversation", "participants");
 
   res.status(200).json({ notifications });
 });
@@ -33,4 +35,39 @@ export const deleteNotification = asyncHandler(async (req, res) => {
   if (!notification) return res.status(404).json({ error: "Notification not found" });
 
   res.status(200).json({ message: "Notification deleted successfully" });
+});
+
+export const markNotificationAsRead = asyncHandler(async (req, res) => {
+  const { userId } = getAuth(req);
+  const { notificationId } = req.params;
+
+  const user = await User.findOne({ clerkId: userId });
+  if (!user) return res.status(404).json({ error: "User not found" });
+
+  const notification = await Notification.findOneAndUpdate(
+    {
+      _id: notificationId,
+      to: user._id,
+    },
+    { read: true },
+    { new: true }
+  );
+
+  if (!notification) return res.status(404).json({ error: "Notification not found" });
+
+  res.status(200).json({ notification });
+});
+
+export const markAllNotificationsAsRead = asyncHandler(async (req, res) => {
+  const { userId } = getAuth(req);
+
+  const user = await User.findOne({ clerkId: userId });
+  if (!user) return res.status(404).json({ error: "User not found" });
+
+  await Notification.updateMany(
+    { to: user._id, read: false },
+    { read: true }
+  );
+
+  res.status(200).json({ message: "All notifications marked as read" });
 });
